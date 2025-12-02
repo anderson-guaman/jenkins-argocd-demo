@@ -28,7 +28,7 @@ spec:
       containers:
         - name: demo-app
           image: demo-app:v1  # ArgoCD actualizará esto
-          imagePullPolicy: Always
+          imagePullPolicy: Never
           ports:
             - containerPort: 3000
               protocol: TCP
