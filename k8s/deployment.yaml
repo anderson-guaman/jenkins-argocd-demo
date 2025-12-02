@@ -27,7 +27,7 @@ spec:
     spec:
       containers:
         - name: demo-app
-          image: your-registry/demo-app:latest  # ArgoCD actualizará esto
+          image: demo-app:v1  # ArgoCD actualizará esto
           imagePullPolicy: Always
           ports:
             - containerPort: 3000
