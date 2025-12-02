@@ -1,0 +1,32 @@
+{
+  "name": "jenkins-argocd-launchdarkly-demo",
+  "version": "1.0.0",
+  "description": "Demo de integración Jenkins CI + ArgoCD + LaunchDarkly Feature Flags",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "nodemon server.js",
+    "test": "jest --coverage",
+    "lint": "eslint ."
+  },
+  "keywords": [
+    "jenkins",
+    "argocd",
+    "launchdarkly",
+    "feature-flags",
+    "devops",
+    "ci-cd"
+  ],
+  "author": "DevOps Team",
+  "license": "MIT",
+  "dependencies": {
+    "@launchdarkly/node-server-sdk": "^9.0.0",
+    "express": "^4.18.2"
+  },
+  "devDependencies": {
+    "eslint": "^8.56.0",
+    "jest": "^29.7.0",
+    "nodemon": "^3.0.2",
+    "supertest": "^6.3.3"
+  }
+}

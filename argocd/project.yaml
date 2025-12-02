@@ -1,0 +1,39 @@
+apiVersion: argoproj.io/v1alpha1
+kind: AppProject
+metadata:
+  name: demo-project
+  namespace: argocd
+spec:
+  description: "Proyecto de demo Jenkins + ArgoCD + LaunchDarkly"
+  
+  # Repositorios permitidos
+  sourceRepos:
+    - 'https://github.com/YOUR_USERNAME/jenkins-argocd-demo.git'
+    - '*'  # En producción, ser más restrictivo
+  
+  # Destinos permitidos
+  destinations:
+    - namespace: demo
+      server: https://kubernetes.default.svc
+    - namespace: demo-staging
+      server: https://kubernetes.default.svc
+    - namespace: demo-production
+      server: https://kubernetes.default.svc
+  
+  # Recursos del cluster permitidos
+  clusterResourceWhitelist:
+    - group: ''
+      kind: Namespace
+  
+  # Recursos de namespace permitidos
+  namespaceResourceWhitelist:
+    - group: ''
+      kind: ConfigMap
+    - group: ''
+      kind: Secret
+    - group: ''
+      kind: Service
+    - group: apps
+      kind: Deployment
+    - group: networking.k8s.io
+      kind: Ingress

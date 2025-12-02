@@ -1,0 +1,46 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: demo-app
+  namespace: argocd
+  # Finalizer para cascade delete
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: default
+  
+  # Fuente del código (repositorio Git)
+  source:
+    repoURL: https://github.com/YOUR_USERNAME/jenkins-argocd-demo.git
+    targetRevision: main
+    path: k8s
+  
+  # Destino del despliegue
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: demo
+  
+  # Política de sincronización automática
+  syncPolicy:
+    automated:
+      # Sincronización automática habilitada
+      prune: true          # Eliminar recursos que ya no están en Git
+      selfHeal: true       # Auto-reparar si alguien modifica manualmente
+      allowEmpty: false    # No permitir aplicaciones vacías
+    syncOptions:
+      - CreateNamespace=true    # Crear namespace si no existe
+      - PrunePropagationPolicy=foreground
+      - PruneLast=true
+    retry:
+      limit: 5
+      backoff:
+        duration: 5s
+        factor: 2
+        maxDuration: 3m
+  
+  # Ignorar diferencias en campos que cambian frecuentemente
+  ignoreDifferences:
+    - group: apps
+      kind: Deployment
+      jsonPointers:
+        - /spec/replicas
