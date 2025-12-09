@@ -1,25 +1,12 @@
 pipeline {
-    agent {
-        docker {
-            image 'node:18'
-            args '-v /var/run/docker.sock:/var/run/docker.sock'
-        }
-    }
+    agent any  // Cambiado: el agente principal es Jenkins, no el contenedor Node
     
     environment {
-        // Configuración de Docker Registry
         DOCKER_IMAGE = 'demo-app'
-
-        
-        // Configuración de Git
         GIT_REPO = 'https://github.com/anderson-guaman/jenkins-argocd-demo.git'
         GIT_CREDENTIALS_ID = 'github-token'
-        
-        // Configuración de ArgoCD
         ARGOCD_SERVER = 'localhost:8081'
         ARGOCD_APP_NAME = 'demo-app'
-        
-        // Versión de la imagen
         IMAGE_TAG = "${env.BUILD_NUMBER}-${env.GIT_COMMIT?.take(7) ?: 'latest'}"
     }
     
@@ -37,7 +24,6 @@ pipeline {
                 checkout scm
                 
                 script {
-                    // Obtener información del commit
                     env.GIT_COMMIT_MSG = sh(
                         script: 'git log -1 --pretty=%B',
                         returnStdout: true
@@ -53,13 +39,26 @@ pipeline {
             }
         }
         
+        // ========== STAGES QUE NECESITAN NODE - Dentro del contenedor ==========
         stage('Install Dependencies') {
+            agent {
+                docker { 
+                    image 'node:18'
+                    reuseNode true  // Importante: reutiliza el workspace
+                }
+            }
             steps {
                 sh 'npm install'
             }
         }
         
         stage('🔎 Code Quality') {
+            agent {
+                docker { 
+                    image 'node:18'
+                    reuseNode true
+                }
+            }
             parallel {
                 stage('Lint') {
                     steps {
@@ -82,6 +81,12 @@ pipeline {
         }
         
         stage('🧪 Tests') {
+            agent {
+                docker { 
+                    image 'node:18'
+                    reuseNode true
+                }
+            }
             steps {
                 dir('app') {
                     echo '🧪 Ejecutando tests...'
@@ -90,53 +95,36 @@ pipeline {
             }
             post {
                 always {
-                    // Publicar resultados de tests si existen
                     junit allowEmptyResults: true, testResults: 'app/test-results/*.xml'
                 }
             }
         }
         
+        // ========== STAGES QUE NECESITAN DOCKER - Fuera del contenedor ==========
         stage('Build Image') {
             steps {
-                sh 'docker build -t demo-app:${BUILD_NUMBER} .'
+                echo '🐳 Construyendo imagen Docker...'
+                sh "docker build -t ${DOCKER_IMAGE}:${IMAGE_TAG} ."
             }
         }
-        
-        // stage('🔐 Push to Registry') {
-        //     steps {
-        //         echo "📤 Subiendo imagen a ${DOCKER_REGISTRY}..."
-                
-        //         script {
-        //             docker.withRegistry("https://${DOCKER_REGISTRY}", DOCKER_CREDENTIALS_ID) {
-        //                 docker.image("${DOCKER_IMAGE}:${IMAGE_TAG}").push()
-        //                 docker.image("${DOCKER_IMAGE}:${IMAGE_TAG}").push('latest')
-        //             }
-        //         }
-        //     }
-        // }
         
         stage('📝 Update K8s Manifests') {
             steps {
                 echo '📝 Actualizando manifiestos de Kubernetes...'
                 
                 script {
-                    // Actualizar la imagen en el deployment
                     sh """
                         sed -i 's|image: .*demo-app:.*|image: ${DOCKER_IMAGE}:${IMAGE_TAG}|g' k8s/deployment.yaml
-                        
-                        # Actualizar la versión en el deployment
                         sed -i 's|APP_VERSION.*|APP_VERSION|g' k8s/deployment.yaml
                         sed -i 's|value: ".*"|value: "${IMAGE_TAG}"|g' k8s/deployment.yaml
                     """
                     
-                    // Commit y push de los cambios
                     withCredentials([string(credentialsId: GIT_CREDENTIALS_ID, variable: 'GITHUB_TOKEN')]) {
                         sh """
                             git config user.email "jenkins@example.com"
                             git config user.name "Jenkins CI"
                             git add k8s/deployment.yaml
                             git commit -m "🚀 CI: Update image to ${IMAGE_TAG}" || echo "No changes to commit"
-                            
                             git push https://x-access-token:\${GITHUB_TOKEN}@github.com/anderson-guaman/jenkins-argocd-demo.git HEAD:main || echo "Push skipped"
                         """
                     }
@@ -149,17 +137,7 @@ pipeline {
                 echo '🔄 Sincronizando aplicación en ArgoCD...'
                 
                 script {
-                    // Opción 1: Usar ArgoCD CLI
                     sh """
-                        # Login a ArgoCD (si está instalado)
-                        # argocd login ${ARGOCD_SERVER} --username admin --password \$ARGOCD_PASSWORD --insecure
-                        
-                        # Sincronizar aplicación
-                        # argocd app sync ${ARGOCD_APP_NAME} --force
-                        
-                        # Esperar a que el despliegue esté healthy
-                        # argocd app wait ${ARGOCD_APP_NAME} --health --timeout 300
-                        
                         echo "✅ ArgoCD detectará automáticamente los cambios en Git"
                         echo "📊 Monitorear en: https://${ARGOCD_SERVER}/applications/${ARGOCD_APP_NAME}"
                     """
@@ -172,15 +150,10 @@ pipeline {
                 echo '✅ Verificando despliegue...'
                 
                 script {
-                    // Esperar un momento para que ArgoCD sincronice
                     sleep(time: 30, unit: 'SECONDS')
                     
-                    // Verificar el estado (opcional, requiere kubectl configurado)
                     sh """
                         echo "🔍 Estado del despliegue:"
-                        # kubectl get pods -n demo -l app=demo-app
-                        # kubectl rollout status deployment/demo-app -n demo --timeout=300s
-                        
                         echo "✅ Despliegue completado exitosamente"
                     """
                 }
@@ -199,9 +172,6 @@ pipeline {
             ║  📊 Build: #${BUILD_NUMBER}
             ╚═══════════════════════════════════════════════════════════╝
             """
-            
-            // Notificación (Slack, Email, etc.)
-            // slackSend(color: 'good', message: "✅ Deploy exitoso: ${env.JOB_NAME} #${env.BUILD_NUMBER}")
         }
         
         failure {
@@ -213,15 +183,10 @@ pipeline {
             ║  📝 Ver logs para más detalles
             ╚═══════════════════════════════════════════════════════════╝
             """
-            
-            // slackSend(color: 'danger', message: "❌ Deploy fallido: ${env.JOB_NAME} #${env.BUILD_NUMBER}")
         }
         
         always {
-            // Limpiar workspace
             cleanWs()
-            
-            // Limpiar imágenes Docker locales
             sh "docker rmi ${DOCKER_IMAGE}:${IMAGE_TAG} || true"
         }
     }
