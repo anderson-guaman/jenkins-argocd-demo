@@ -3,13 +3,12 @@ pipeline {
     
     environment {
         // Configuración de Docker Registry
-        DOCKER_REGISTRY = 'docker.io'
-        DOCKER_IMAGE = 'your-dockerhub-username/demo-app'
-        DOCKER_CREDENTIALS_ID = 'docker-hub-credentials'
+        DOCKER_IMAGE = 'demo-app'
+
         
         // Configuración de Git
-        GIT_REPO = 'https://github.com/YOUR_USERNAME/jenkins-argocd-demo.git'
-        GIT_CREDENTIALS_ID = 'github-credentials'
+        GIT_REPO = 'https://github.com/anderson-guaman/jenkins-argocd-demo.git'
+        GIT_CREDENTIALS_ID = 'github-token'
         
         // Configuración de ArgoCD
         ARGOCD_SERVER = 'argocd.example.com'
@@ -107,18 +106,18 @@ pipeline {
             }
         }
         
-        stage('🔐 Push to Registry') {
-            steps {
-                echo "📤 Subiendo imagen a ${DOCKER_REGISTRY}..."
+        // stage('🔐 Push to Registry') {
+        //     steps {
+        //         echo "📤 Subiendo imagen a ${DOCKER_REGISTRY}..."
                 
-                script {
-                    docker.withRegistry("https://${DOCKER_REGISTRY}", DOCKER_CREDENTIALS_ID) {
-                        docker.image("${DOCKER_IMAGE}:${IMAGE_TAG}").push()
-                        docker.image("${DOCKER_IMAGE}:${IMAGE_TAG}").push('latest')
-                    }
-                }
-            }
-        }
+        //         script {
+        //             docker.withRegistry("https://${DOCKER_REGISTRY}", DOCKER_CREDENTIALS_ID) {
+        //                 docker.image("${DOCKER_IMAGE}:${IMAGE_TAG}").push()
+        //                 docker.image("${DOCKER_IMAGE}:${IMAGE_TAG}").push('latest')
+        //             }
+        //         }
+        //     }
+        // }
         
         stage('📝 Update K8s Manifests') {
             steps {
@@ -135,17 +134,14 @@ pipeline {
                     """
                     
                     // Commit y push de los cambios
-                    withCredentials([usernamePassword(
-                        credentialsId: GIT_CREDENTIALS_ID,
-                        usernameVariable: 'GIT_USERNAME',
-                        passwordVariable: 'GIT_PASSWORD'
-                    )]) {
+                    withCredentials([string(credentialsId: GIT_CREDENTIALS_ID, variable: 'GITHUB_TOKEN')]) {
                         sh """
                             git config user.email "jenkins@example.com"
                             git config user.name "Jenkins CI"
                             git add k8s/deployment.yaml
                             git commit -m "🚀 CI: Update image to ${IMAGE_TAG}" || echo "No changes to commit"
-                            git push https://\${GIT_USERNAME}:\${GIT_PASSWORD}@github.com/YOUR_USERNAME/jenkins-argocd-demo.git HEAD:main || echo "Push skipped"
+                            
+                            git push https://x-access-token:\${GITHUB_TOKEN}@github.com/YOUR_USERNAME/jenkins-argocd-demo.git HEAD:main || echo "Push skipped"
                         """
                     }
                 }
