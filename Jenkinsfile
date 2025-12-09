@@ -2,7 +2,7 @@ pipeline {
     agent any
     
     environment {
-        DOCKER_IMAGE = 'host.docker.internal:5000/demo-app'
+        DOCKER_IMAGE = 'demo-app'
         GIT_REPO = 'https://github.com/anderson-guaman/jenkins-argocd-demo.git'
         GIT_CREDENTIALS_ID = 'github-token'
         ARGOCD_SERVER = 'localhost:8081'
@@ -93,7 +93,7 @@ pipeline {
                 echo '🐳 Construyendo y subiendo imagen Docker...'
                 sh """
                     docker build -t ${DOCKER_IMAGE}:${IMAGE_TAG} .
-                    docker push ${DOCKER_IMAGE}:${IMAGE_TAG}
+                    kind load docker-image ${DOCKER_IMAGE}:${IMAGE_TAG}
                 """
             }
         }
@@ -104,9 +104,7 @@ pipeline {
                 
                 script {
                     sh """
-                        sed -i 's|image: .*demo-app:.*|image: ${DOCKER_IMAGE}:${IMAGE_TAG}|g' k8s/deployment.yaml
-                        sed -i 's|APP_VERSION.*|APP_VERSION|g' k8s/deployment.yaml
-                        sed -i 's|value: ".*"|value: "${IMAGE_TAG}"|g' k8s/deployment.yaml
+                        sed -i 's|image: demo-app:.*|image: demo-app:${IMAGE_TAG}|g' k8s/deployment.yaml
                     """
                     
                     withCredentials([usernamePassword(credentialsId: GIT_CREDENTIALS_ID, usernameVariable: 'GIT_USER', passwordVariable: 'GIT_TOKEN')]) {

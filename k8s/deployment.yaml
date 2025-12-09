@@ -27,8 +27,8 @@ spec:
     spec:
       containers:
         - name: demo-app
-          image: host.docker.internal:5000/demo-app:latest  # ArgoCD actualizará esto
-          imagePullPolicy: Always
+          image: demo-app:latest  # ArgoCD actualizará esto
+          imagePullPolicy: Never
           ports:
             - containerPort: 3000
               protocol: TCP
