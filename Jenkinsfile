@@ -57,7 +57,7 @@ pipeline {
             steps {
                 dir('app') {
                     echo '📦 Instalando dependencias...'
-                    sh 'npm ci'
+                    sh 'npm install'
                 }
             }
         }
