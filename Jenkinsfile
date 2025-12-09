@@ -16,7 +16,7 @@ pipeline {
         GIT_CREDENTIALS_ID = 'github-token'
         
         // Configuración de ArgoCD
-        ARGOCD_SERVER = 'argocd.example.com'
+        ARGOCD_SERVER = 'localhost:8081'
         ARGOCD_APP_NAME = 'demo-app'
         
         // Versión de la imagen
@@ -146,7 +146,7 @@ pipeline {
                             git add k8s/deployment.yaml
                             git commit -m "🚀 CI: Update image to ${IMAGE_TAG}" || echo "No changes to commit"
                             
-                            git push https://x-access-token:\${GITHUB_TOKEN}@github.com/YOUR_USERNAME/jenkins-argocd-demo.git HEAD:main || echo "Push skipped"
+                            git push https://x-access-token:\${GITHUB_TOKEN}@github.com/anderson-guaman/jenkins-argocd-demo.git HEAD:main || echo "Push skipped"
                         """
                     }
                 }
