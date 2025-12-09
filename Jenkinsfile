@@ -1,5 +1,5 @@
 pipeline {
-    agent any  // Cambiado: el agente principal es Jenkins, no el contenedor Node
+    agent any
     
     environment {
         DOCKER_IMAGE = 'demo-app'
@@ -39,12 +39,11 @@ pipeline {
             }
         }
         
-        // ========== STAGES QUE NECESITAN NODE - Dentro del contenedor ==========
         stage('Install Dependencies') {
             agent {
                 docker { 
                     image 'node:18'
-                    reuseNode true  // Importante: reutiliza el workspace
+                    reuseNode true
                 }
             }
             steps {
@@ -59,23 +58,12 @@ pipeline {
                     reuseNode true
                 }
             }
-            parallel {
-                stage('Lint') {
-                    steps {
-                        dir('app') {
-                            echo '🔎 Ejecutando linter...'
-                            sh 'npm run lint || true'
-                        }
-                    }
-                }
-                
-                stage('Security Scan') {
-                    steps {
-                        dir('app') {
-                            echo '🔒 Escaneando vulnerabilidades...'
-                            sh 'npm audit --audit-level=high || true'
-                        }
-                    }
+            steps {
+                dir('app') {
+                    echo '🔎 Ejecutando linter...'
+                    sh 'npm run lint || true'
+                    echo '🔒 Escaneando vulnerabilidades...'
+                    sh 'npm audit --audit-level=high || true'
                 }
             }
         }
@@ -100,7 +88,6 @@ pipeline {
             }
         }
         
-        // ========== STAGES QUE NECESITAN DOCKER - Fuera del contenedor ==========
         stage('Build Image') {
             steps {
                 echo '🐳 Construyendo imagen Docker...'
@@ -135,28 +122,21 @@ pipeline {
         stage('🔄 Sync ArgoCD') {
             steps {
                 echo '🔄 Sincronizando aplicación en ArgoCD...'
-                
-                script {
-                    sh """
-                        echo "✅ ArgoCD detectará automáticamente los cambios en Git"
-                        echo "📊 Monitorear en: https://${ARGOCD_SERVER}/applications/${ARGOCD_APP_NAME}"
-                    """
-                }
+                sh """
+                    echo "✅ ArgoCD detectará automáticamente los cambios en Git"
+                    echo "📊 Monitorear en: https://${ARGOCD_SERVER}/applications/${ARGOCD_APP_NAME}"
+                """
             }
         }
         
         stage('✅ Verify Deployment') {
             steps {
                 echo '✅ Verificando despliegue...'
-                
-                script {
-                    sleep(time: 30, unit: 'SECONDS')
-                    
-                    sh """
-                        echo "🔍 Estado del despliegue:"
-                        echo "✅ Despliegue completado exitosamente"
-                    """
-                }
+                sleep(time: 30, unit: 'SECONDS')
+                sh """
+                    echo "🔍 Estado del despliegue:"
+                    echo "✅ Despliegue completado exitosamente"
+                """
             }
         }
     }
