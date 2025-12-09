@@ -2,7 +2,7 @@ pipeline {
     agent any
     
     environment {
-        DOCKER_IMAGE = 'host.docker.internal:5000/demo-app'
+        DOCKER_IMAGE = 'localhost:5000/demo-app'
         GIT_REPO = 'https://github.com/anderson-guaman/jenkins-argocd-demo.git'
         GIT_CREDENTIALS_ID = 'github-token'
         ARGOCD_SERVER = 'localhost:8081'
