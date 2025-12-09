@@ -2,7 +2,7 @@ pipeline {
     agent any
     
     environment {
-        DOCKER_IMAGE = 'demo-app'
+        DOCKER_IMAGE = 'localhost:5000/demo-app'
         GIT_REPO = 'https://github.com/anderson-guaman/jenkins-argocd-demo.git'
         GIT_CREDENTIALS_ID = 'github-token'
         ARGOCD_SERVER = 'localhost:8081'
@@ -88,10 +88,13 @@ pipeline {
             }
         }
         
-        stage('Build Image') {
+        stage('Build & Push Image') {
             steps {
-                echo '🐳 Construyendo imagen Docker...'
-                sh "docker build -t ${DOCKER_IMAGE}:${IMAGE_TAG} ."
+                echo '🐳 Construyendo y subiendo imagen Docker...'
+                sh """
+                    docker build -t ${DOCKER_IMAGE}:${IMAGE_TAG} .
+                    docker push ${DOCKER_IMAGE}:${IMAGE_TAG}
+                """
             }
         }
         
