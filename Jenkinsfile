@@ -106,13 +106,13 @@ pipeline {
                         sed -i 's|value: ".*"|value: "${IMAGE_TAG}"|g' k8s/deployment.yaml
                     """
                     
-                    withCredentials([string(credentialsId: GIT_CREDENTIALS_ID, variable: 'GITHUB_TOKEN')]) {
+                    withCredentials([usernamePassword(credentialsId: GIT_CREDENTIALS_ID, usernameVariable: 'GIT_USER', passwordVariable: 'GIT_TOKEN')]) {
                         sh """
                             git config user.email "jenkins@example.com"
                             git config user.name "Jenkins CI"
                             git add k8s/deployment.yaml
                             git commit -m "🚀 CI: Update image to ${IMAGE_TAG}" || echo "No changes to commit"
-                            git push https://x-access-token:\${GITHUB_TOKEN}@github.com/anderson-guaman/jenkins-argocd-demo.git HEAD:main || echo "Push skipped"
+                            git push https://\${GIT_USER}:\${GIT_TOKEN}@github.com/anderson-guaman/jenkins-argocd-demo.git HEAD:main || echo "Push skipped"
                         """
                     }
                 }
