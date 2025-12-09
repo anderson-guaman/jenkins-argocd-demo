@@ -14,10 +14,10 @@ async function initLaunchDarkly() {
     try {
         ldClient = LaunchDarkly.init(LD_SDK_KEY);
         await ldClient.waitForInitialization();
-        console.log('✅ LaunchDarkly inicializado correctamente');
+        console.log('LaunchDarkly inicializado correctamente');
     } catch (error) {
-        console.error('❌ Error inicializando LaunchDarkly:', error.message);
-        console.log('⚠️  Continuando sin LaunchDarkly (modo fallback)');
+        console.error('Error inicializando LaunchDarkly:', error.message);
+        console.log(' Continuando sin LaunchDarkly (modo fallback)');
         ldClient = null;
     }
 }
@@ -56,7 +56,7 @@ app.get('/', async (req, res) => {
     }
     
     res.json({
-        message: '🚀 Jenkins + ArgoCD + LaunchDarkly Demo',
+        message: '🚀 Jenkins + ArgoCD + LaunchDarkly Demo Microservicio',
         version: process.env.APP_VERSION || '1.0.0',
         environment: process.env.NODE_ENV || 'development',
         timestamp: new Date().toISOString(),
