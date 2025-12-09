@@ -53,12 +53,9 @@ pipeline {
             }
         }
         
-        stage('📦 Install Dependencies') {
+        stage('Install Dependencies') {
             steps {
-                dir('app') {
-                    echo '📦 Instalando dependencias...'
-                    sh 'npm install'
-                }
+                sh 'docker run --rm -v $PWD:/app -w /app node:18 npm install'
             }
         }
         
@@ -99,15 +96,9 @@ pipeline {
             }
         }
         
-        stage('🐳 Build Docker Image') {
+        stage('Build Image') {
             steps {
-                dir('app') {
-                    echo "🐳 Construyendo imagen Docker: ${DOCKER_IMAGE}:${IMAGE_TAG}"
-                    
-                    script {
-                        docker.build("${DOCKER_IMAGE}:${IMAGE_TAG}", ".")
-                    }
-                }
+                sh 'docker build -t demo-app:${BUILD_NUMBER} .'
             }
         }
         
