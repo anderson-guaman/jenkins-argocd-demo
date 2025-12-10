@@ -4,7 +4,7 @@ pipeline {
     environment {
         DOCKER_IMAGE = 'host.docker.internal:5000/demo-app'
         GIT_REPO = 'https://github.com/anderson-guaman/jenkins-argocd-demo.git'
-        GIT_CREDENTIALS_ID = 'github-token'
+        GIT_CREDENTIALS_ID = 'token-clasic-git'
         ARGOCD_SERVER = 'localhost:8081'
         ARGOCD_APP_NAME = 'demo-app'
         IMAGE_TAG = "${env.BUILD_NUMBER}-${env.GIT_COMMIT?.take(7) ?: 'latest'}"
