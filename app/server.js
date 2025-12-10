@@ -56,7 +56,7 @@ app.get('/', async (req, res) => {
     }
     
     res.json({
-        message: '🚀  Microservicio  Jenkins + ArgoCD + LaunchDarkly Demo pruebaaaa anderson ',
+        message: '🚀  Microservicio  Jenkins + ArgoCD + LaunchDarkly Demo pruebaaaa ',
         version: process.env.APP_VERSION || '1.0.0',
         environment: process.env.NODE_ENV || 'development',
         timestamp: new Date().toISOString(),
