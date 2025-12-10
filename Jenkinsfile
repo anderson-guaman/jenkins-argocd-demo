@@ -125,12 +125,20 @@ pipeline {
         stage('🔄 Sync ArgoCD') {
             steps {
                 echo '🔄 Sincronizando aplicación en ArgoCD...'
-                sh """
-                    echo "✅ ArgoCD detectará automáticamente los cambios en Git"
-                    echo "📊 Monitorear en: https://${ARGOCD_SERVER}/applications/${ARGOCD_APP_NAME}"
-                """
+                script {
+                    withCredentials([usernamePassword(credentialsId: 'argocd-creds', usernameVariable: 'ARGOCD_USER', passwordVariable: 'ARGOCD_PASS')]) {
+                        sh """
+                            # Login al servidor ArgoCD
+                            argocd login ${ARGOCD_SERVER} --username $ARGOCD_USER --password $ARGOCD_PASS --insecure
+                            
+                            # Forzar sincronización de la aplicación
+                            argocd app sync ${ARGOCD_APP_NAME}
+                        """
+                    }
+                }
             }
         }
+
         
         stage('✅ Verify Deployment') {
             steps {
