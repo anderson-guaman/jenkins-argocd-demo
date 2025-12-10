@@ -117,7 +117,7 @@ pipeline {
                             git config user.name "Jenkins CI"
                             git add k8s/deployment.yaml
                             git commit -m "🚀 CI: Update image to ${IMAGE_TAG}" || echo "No changes to commit"
-                            git push https://\${GIT_USER}:\${GIT_TOKEN}@github.com/anderson-guaman/jenkins-argocd-demo.git HEAD:main || echo "Push skipped"
+                            git push https://\${GIT_USER}:\${GIT_TOKEN}@github.com/anderson-guaman/jenkins-argocd-demo.git HEAD:main 
                         """
                     }
                 }
