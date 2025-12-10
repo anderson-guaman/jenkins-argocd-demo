@@ -93,7 +93,9 @@ pipeline {
                 echo '🐳 Construyendo y subiendo imagen Docker...'
                 sh """
                     docker build -t ${DOCKER_IMAGE}:${IMAGE_TAG} .
+                    docker tag ${DOCKER_IMAGE}:${IMAGE_TAG} ${DOCKER_IMAGE}:latest
                     docker push ${DOCKER_IMAGE}:${IMAGE_TAG}
+                    docker push ${DOCKER_IMAGE}:latest
                 """
             }
         }
@@ -122,8 +124,15 @@ pipeline {
             }
         }
         
-        
-
+        stage('🔄 Sync ArgoCD') {
+            steps {
+                echo '🔄 Sincronizando aplicación en ArgoCD...'
+                sh """
+                    echo "✅ ArgoCD detectará automáticamente los cambios en Git"
+                    echo "📊 Monitorear en: https://${ARGOCD_SERVER}/applications/${ARGOCD_APP_NAME}"
+                """
+            }
+        }
         
         stage('✅ Verify Deployment') {
             steps {
