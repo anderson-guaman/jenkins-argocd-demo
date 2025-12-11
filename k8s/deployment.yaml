@@ -27,16 +27,16 @@ spec:
     spec:
       containers:
         - name: demo-app
-          image: host.docker.internal:5000/demo-app:46-e5a1222
+          image: host.docker.internal:5000/demo-app:47-81792d7
           imagePullPolicy: Always
           ports:
             - containerPort: 3000
               protocol: TCP
           env:
             - name: NODE_ENV
-              value: "46-e5a1222"
+              value: "47-81792d7"
             - name: APP_VERSION
-              value: "46-e5a1222"
+              value: "47-81792d7"
             - name: LAUNCHDARKLY_SDK_KEY
               valueFrom:
                 secretKeyRef:
